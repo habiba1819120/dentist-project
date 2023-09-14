@@ -191,7 +191,7 @@ resource "aws_route53_record" "alias_route53_record-api" {
 }
 
 resource "aws_route53_record" "alias_route53_record-admin" {
-  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
+  zone_id = data.aws_route53_zone.dentistapp.zone_id # Replace with your zone ID
   name    = "api." # Replace with your name/domain/subdomain
   type    = "A"
 
