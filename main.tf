@@ -44,7 +44,7 @@ resource "aws_subnet" "prod_subnet" {
     Name = "prod-${count.index + 1}"
   }
 
-
+}
 resource "aws_internet_gateway" "main_ig" {
   vpc_id = aws_vpc.main_vpc.id
 
