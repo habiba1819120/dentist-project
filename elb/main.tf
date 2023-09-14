@@ -58,6 +58,17 @@ resource "aws_lb_listener" "front_end" {
   }
 
 }
+resource "aws_lb_listener" "front_end_https" {
+  load_balancer_arn = aws_lb.front-lb.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = "arn:aws:acm:us-east-1:829465433345:certificate/f9b4e9c5-0466-468e-9b62-587afcdbd45f"
 
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.front-target-lb.arn
+  }
+}
 
 
