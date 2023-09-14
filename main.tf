@@ -1,33 +1,236 @@
-# Initialize Terraform AWS provider
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      #       version = "4.61.0"
+    }
+  }
+}
+
+
+
 provider "aws" {
-  region = "us-east-1"  # Replace with your desired AWS region
+  region = "us-east-1" # Update with appropriate region
 }
 
-# Create a VPC
-resource "aws_vpc" "my_vpc" {
-  cidr_block = "10.0.0.0/16"
+
+
+
+###########
+####    VPC  
+###########
+
+####### Create VPC
+resource "aws_vpc" "main_vpc" {
+  tags = {
+    Name = "main-vpc"
+  }
+  cidr_block = local.main_vpc.cidr
+  
 }
 
-# Create a public subnet
-resource "aws_subnet" "public_subnet" {
-  vpc_id     = aws_vpc.my_vpc.id
-  cidr_block = "10.0.1.0/24"
-  availability_zone = "us-east-1a"  # Replace with your desired availability zone
-  map_public_ip_on_launch = true
+# Create Subnets
+data "aws_availability_zones" "az" {
+  state = "available"
+}
+resource "aws_subnet" "prod_subnet" {
+  count = length(local.prod_ec2s)
+
+  cidr_block = "10.0.${count.index}.0/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
+  vpc_id     = aws_vpc.main_vpc.id
+  availability_zone = data.aws_availability_zones.az.names[count.index]
+
+  tags = {
+    Name = "prod-${count.index + 1}"
+  }
 }
 
-# Create a security group for the EC2 instance
-resource "aws_security_group" "ec2_sg" {
-  name_prefix = "ec2-sg-"
-  vpc_id      = aws_vpc.my_vpc.id
+resource "aws_subnet" "dev_subnet" {
+  count = length(local.dev_ec2s) 
 
-  # Define your security group rules here (e.g., allow SSH and HTTP traffic)
+  cidr_block = "10.0.${count.index + length(local.prod_ec2s)}.0/24" #cidrsubnet(cidrsubnet(local.main_vpc.cidr, local.v4_env_offset,0), local.v4_env_offset+count.index,0) 
+  vpc_id     = aws_vpc.main_vpc.id
+  availability_zone = data.aws_availability_zones.az.names[count.index]
+
+  tags = {
+    Name = "dev-${count.index + 1}"
+  }
+}
+
+
+resource "aws_internet_gateway" "main_ig" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  tags = {
+    Name = "main Internet Gateway"
+  }
+}
+
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main_ig.id
+  }
+
+  route {
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.main_ig.id
+  }
+
+  tags = {
+    Name = "Public Route Table"
+  }
+}
+
+resource "aws_route_table_association" "public_dev_rt_a" {
+  count = length(local.dev_ec2s)
+  subnet_id      = aws_subnet.dev_subnet[count.index].id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "public_prod_rt_a" {
+  count = length(local.prod_ec2s)
+  subnet_id      = aws_subnet.prod_subnet[count.index].id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+
+
+
+###########
+####    EC2 Role 
+###########
+
+#######Create an IAM Policy and Role for ECR
+resource "aws_iam_policy" "ecr-policy" {
+  name        = "ECR--policy"
+  description = "Provides permission to access ECR"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        "Action": [
+            "ecr:*"
+        ]
+        Effect   = "Allow"
+        Resource: "*"
+      },
+    ]
+  })
+}
+
+#Create an IAM Role
+resource "aws_iam_role" "ec2-role" {
+  name = "ec2--Role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = "RoleForEC2"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "ec2-ecr-attach" {
+  name       = "ec2-ecr-attachment"
+  roles      = [aws_iam_role.ec2-role.name]
+  policy_arn = aws_iam_policy.ecr-policy.arn
+}
+
+resource "aws_iam_instance_profile" "ec2-profile" {
+  name = "ec2-profile"
+  role = aws_iam_role.ec2-role.name
+}
+
+
+
+##########################################
+##########      DEV ENV
+###########################################
+
+data "aws_eip" "dev_aws_eip" {
+  for_each =  local.dev_aws_eips
+  id = local.dev_aws_eips[each.key]
+}
+resource "aws_security_group" "dev_web_sg" {
+  name   = "dev_web_sg"
+  vpc_id = aws_vpc.main_vpc.id
+
   ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["${data.aws_eip.dev_aws_eip["openvpn-server"].public_ip}/32"]
+  }
+
+    ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["${data.aws_eip.dev_aws_eip["openvpn-server"].public_ip}/32"]
+  }
+
+    ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+####### Create EC2 Instances
+module "dev_ec2" {
+  for_each = local.dev_ec2s
+  source = "./ec2"
+  name = each.key
+  settings = each.value  
+  subnets = aws_subnet.dev_subnet
+  iam_instance_profile = aws_iam_instance_profile.ec2-profile.name
+  vpc_security_group_ids = [aws_security_group.dev_web_sg.id]
+}
+
+
+
+
+output "dev_aws_eip"{
+    value = data.aws_eip.dev_aws_eip
+}
+#Associate DEV EIP with EC2 Instance
+resource "aws_eip_association" "eip-association" {
+  for_each = local.dev_ec2s
+  instance_id = module.dev_ec2[each.key].ec2_instance[0].id
+  allocation_id = data.aws_eip.dev_aws_eip[each.key].id
+}
+
+
+
+
+##########################################
+##########      PROD ENV
+###########################################
+
+resource "aws_security_group" "prod_web_sg" {
+  name   = "prod_web_sg"
+  vpc_id = aws_vpc.main_vpc.id
 
   ingress {
     from_port   = 80
@@ -35,100 +238,110 @@ resource "aws_security_group" "ec2_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-}
 
-# Create an EC2 instance in the public subnet
-resource "aws_instance" "ec2_instance" {
-  ami           = "ami-0c55b159cbfafe1f0"  # Replace with your desired AMI ID
-  instance_type = "t2.micro"  # Replace with your desired instance type
-  subnet_id     = aws_subnet.public_subnet.id
-  security_groups = [aws_security_group.ec2_sg.name]
+    ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-  # User data script to configure the EC2 instance (e.g., install web server)
-  user_data = <<-EOF
-              #!/bin/bash
-              yum install -y httpd
-              systemctl start httpd
-              systemctl enable httpd
-              EOF
-}
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-# Create an RDS instance
-resource "aws_db_instance" "rds_instance" {
-  allocated_storage    = 20
-  storage_type         = "gp2"
-  engine               = "mysql"
-  engine_version       = "5.7"
-  instance_class       = "db.t2.micro"  # Replace with your desired instance class
-  name                 = "myrds"
-  username             = "admin"
-  password             = "your_password"  # Replace with your desired RDS password
-  parameter_group_name = "default.mysql5.7"
-  skip_final_snapshot  = true
-
-  # Subnet group for RDS (choose private subnets)
-  subnet_group_name = "my-rds-subnet-group"  # Create an appropriate subnet group
-  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-}
-
-# Create an Application Load Balancer (ALB)
-resource "aws_lb" "my_alb" {
-  name               = "my-alb"
-  internal           = false
-  load_balancer_type = "application"
-  subnets            = [aws_subnet.public_subnet.id]
-  enable_deletion_protection = false  # Disable this for testing/dev environments
-}
-
-# Create a listener for the ALB (e.g., HTTP on port 80)
-resource "aws_lb_listener" "alb_listener" {
-  load_balancer_arn = aws_lb.my_alb.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "fixed-response"
-    content_type     = "text/plain"
-    status_code      = "200"
-    fixed_response   = "Hello, world!"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
-# Create a target group for the ALB
-resource "aws_lb_target_group" "my_target_group" {
-  name     = "my-target-group"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = aws_vpc.my_vpc.id
+module "prod_ec2" {
+  for_each = local.prod_ec2s
+  source = "./ec2"
+  name = each.key
+  settings = each.value  
+  subnets = aws_subnet.prod_subnet
+  iam_instance_profile = aws_iam_instance_profile.ec2-profile.name
+  vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
+}
 
-  health_check {
-    path                = "/"
-    interval            = 30
-    timeout             = 10
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
+data "aws_eip" "aws_eip" {
+  for_each =  local.prod_ec2s
+  id = local.prod_aws_eips[each.key]
+}
+
+#Associate EIP with EC2 Instance
+resource "aws_eip_association" "aws_eip_association" {
+  for_each =  module.prod_ec2
+  instance_id = module.prod_ec2[each.key].ec2_instance[0].id
+  allocation_id = data.aws_eip.aws_eip[each.key].id
+}
+
+
+###########
+####   Load Balancer 
+###########
+
+###### elb and  target group
+module "elb" {
+  source = "./elb"
+  settings = local.elb
+  target =  module.prod_ec2
+  vpc =  aws_vpc.main_vpc
+  security_groups = aws_security_group.prod_web_sg
+  subnets = aws_subnet.prod_subnet 
+}
+
+
+
+###########
+####   route53 
+###########
+
+##### route53 record
+
+data "aws_route53_zone" "pocketpropertiesapp" {
+  name         = "pocketpropertiesapp.com."
+}
+
+resource "aws_route53_record" "alias_route53_record" {
+  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
+  name    = "pocketpropertiesapp.com" # Replace with your name/domain/subdomain
+  type    = "A"
+
+  alias {
+    name                   = module.elb.prod-elb.dns_name
+    zone_id                = module.elb.prod-elb.zone_id
+    evaluate_target_health = true
   }
 }
 
-# Attach the EC2 instance to the target group
-resource "aws_lb_target_group_attachment" "ec2_attachment" {
-  target_group_arn = aws_lb_target_group.my_target_group.arn
-  target_id        = aws_instance.ec2_instance.id
+resource "aws_route53_record" "alias_route53_record-api" {
+  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
+  name    = "admin" # Replace with your name/domain/subdomain
+  type    = "A"
+
+  alias {
+    name                   = module.elb.prod-elb.dns_name
+    zone_id                = module.elb.prod-elb.zone_id
+    evaluate_target_health = true
+  }
 }
 
-# Create an ALB listener rule to forward traffic to the target group
-resource "aws_lb_listener_rule" "alb_listener_rule" {
-  listener_arn = aws_lb_listener.alb_listener.arn
-  priority     = 100
+resource "aws_route53_record" "alias_route53_record-admin" {
+  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
+  name    = "api." # Replace with your name/domain/subdomain
+  type    = "A"
 
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.my_target_group.arn
-  }
-
-  condition {
-    path_pattern {
-      values = ["/"]  # Forward all traffic to the target group
-    }
+  alias {
+    name                   = module.elb.prod-elb.dns_name
+    zone_id                = module.elb.prod-elb.zone_id
+    evaluate_target_health = true
   }
 }
