@@ -186,7 +186,7 @@ module "prod_ec2" {
   vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
 }
 
-"data "aws_eip" "aws_eip" {
+#"data "aws_eip" "aws_eip" {
 #  for_each =  local.prod_ec2s
 #  id = local.prod_aws_eips[each.key]
 #}
