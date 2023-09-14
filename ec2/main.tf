@@ -20,17 +20,6 @@ resource "aws_instance" "ec2_instance" {
   tags = {
     Name = var.name
   }
-#Add IAM role to read images from ECR
-  iam_instance_profile = var.iam_instance_profile
-  vpc_security_group_ids      = var.vpc_security_group_ids 
-  # user_data = <<-EOF
-  #   #! /bin/bash
-  #   sudo apt-get update
-  #   sudo apt-get install -y apache2
-  #   sudo systemctl start apache2
-  #   sudo systemctl enable apache2
-  #   echo "${var.name}" | sudo tee /var/www/html/index.html
-  # EOF
 
 }
 
