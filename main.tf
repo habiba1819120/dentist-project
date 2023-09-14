@@ -45,17 +45,7 @@ resource "aws_subnet" "prod_subnet" {
   }
 }
 
-resource "aws_subnet" "dev_subnet" {
-  count = length(local.dev_ec2s) 
 
-  cidr_block = "10.0.${count.index + length(local.prod_ec2s)}.0/24" #cidrsubnet(cidrsubnet(local.main_vpc.cidr, local.v4_env_offset,0), local.v4_env_offset+count.index,0) 
-  vpc_id     = aws_vpc.main_vpc.id
-  availability_zone = data.aws_availability_zones.az.names[count.index]
-
-  tags = {
-    Name = "dev-${count.index + 1}"
-  }
-}
 
 
 resource "aws_internet_gateway" "main_ig" {
@@ -85,11 +75,7 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-resource "aws_route_table_association" "public_dev_rt_a" {
-  count = length(local.dev_ec2s)
-  subnet_id      = aws_subnet.dev_subnet[count.index].id
-  route_table_id = aws_route_table.public_rt.id
-}
+
 
 resource "aws_route_table_association" "public_prod_rt_a" {
   count = length(local.prod_ec2s)
@@ -152,76 +138,6 @@ resource "aws_iam_instance_profile" "ec2-profile" {
   name = "ec2-profile"
   role = aws_iam_role.ec2-role.name
 }
-
-
-
-##########################################
-##########      DEV ENV
-###########################################
-
-data "aws_eip" "dev_aws_eip" {
-  for_each =  local.dev_aws_eips
-  id = local.dev_aws_eips[each.key]
-}
-resource "aws_security_group" "dev_web_sg" {
-  name   = "dev_web_sg"
-  vpc_id = aws_vpc.main_vpc.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["${data.aws_eip.dev_aws_eip["openvpn-server"].public_ip}/32"]
-  }
-
-    ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["${data.aws_eip.dev_aws_eip["openvpn-server"].public_ip}/32"]
-  }
-
-    ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-
-####### Create EC2 Instances
-module "dev_ec2" {
-  for_each = local.dev_ec2s
-  source = "./ec2"
-  name = each.key
-  settings = each.value  
-  subnets = aws_subnet.dev_subnet
-  iam_instance_profile = aws_iam_instance_profile.ec2-profile.name
-  vpc_security_group_ids = [aws_security_group.dev_web_sg.id]
-}
-
-
-
-
-output "dev_aws_eip"{
-    value = data.aws_eip.dev_aws_eip
-}
-#Associate DEV EIP with EC2 Instance
-resource "aws_eip_association" "eip-association" {
-  for_each = local.dev_ec2s
-  instance_id = module.dev_ec2[each.key].ec2_instance[0].id
-  allocation_id = data.aws_eip.dev_aws_eip[each.key].id
-}
-
-
 
 
 ##########################################
@@ -306,42 +222,42 @@ module "elb" {
 
 ##### route53 record
 
-data "aws_route53_zone" "pocketpropertiesapp" {
-  name         = "pocketpropertiesapp.com."
-}
+#data "aws_route53_zone" "dentistapp" {
+#  name         = "dentistapp.com."
+#}
 
-resource "aws_route53_record" "alias_route53_record" {
-  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
-  name    = "pocketpropertiesapp.com" # Replace with your name/domain/subdomain
-  type    = "A"
+#resource "aws_route53_record" "alias_route53_record" {
+#  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
+#  name    = "pocketpropertiesapp.com" # Replace with your name/domain/subdomain
+#  type    = "A"
 
-  alias {
-    name                   = module.elb.prod-elb.dns_name
-    zone_id                = module.elb.prod-elb.zone_id
-    evaluate_target_health = true
-  }
-}
+#  alias {
+#    name                   = module.elb.prod-elb.dns_name
+#    zone_id                = module.elb.prod-elb.zone_id
+#    evaluate_target_health = true
+#  }
+#}
 
-resource "aws_route53_record" "alias_route53_record-api" {
-  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
-  name    = "admin" # Replace with your name/domain/subdomain
-  type    = "A"
+#resource "aws_route53_record" "alias_route53_record-api" {
+#  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
+#  name    = "admin" # Replace with your name/domain/subdomain
+#  type    = "A"
 
-  alias {
-    name                   = module.elb.prod-elb.dns_name
-    zone_id                = module.elb.prod-elb.zone_id
-    evaluate_target_health = true
-  }
-}
+#  alias {
+#    name                   = module.elb.prod-elb.dns_name
+#    zone_id                = module.elb.prod-elb.zone_id
+#    evaluate_target_health = true
+#  }
+#}
 
-resource "aws_route53_record" "alias_route53_record-admin" {
-  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
-  name    = "api." # Replace with your name/domain/subdomain
-  type    = "A"
+#resource "aws_route53_record" "alias_route53_record-admin" {
+#  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
+#  name    = "api." # Replace with your name/domain/subdomain
+#  type    = "A"
 
-  alias {
-    name                   = module.elb.prod-elb.dns_name
-    zone_id                = module.elb.prod-elb.zone_id
-    evaluate_target_health = true
-  }
-}
+#  alias {
+#    name                   = module.elb.prod-elb.dns_name
+#    zone_id                = module.elb.prod-elb.zone_id
+#    evaluate_target_health = true
+#  }
+#}
