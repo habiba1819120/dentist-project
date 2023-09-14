@@ -5,9 +5,6 @@ variable "iam_instance_profile" {}
 variable "vpc_security_group_ids" {}
 
 
-
-
-
 # Create EC2 Instances
 resource "aws_instance" "ec2_instance" {
   count = var.settings.amount 

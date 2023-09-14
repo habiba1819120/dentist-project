@@ -87,62 +87,6 @@ resource "aws_route_table_association" "public_prod_rt_a" {
 }
 
 
-
-
-###########
-####    EC2 Role 
-###########
-
-#######Create an IAM Policy and Role for ECR
-resource "aws_iam_policy" "ecr-policy" {
-  name        = "ECR--policy"
-  description = "Provides permission to access ECR"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        "Action": [
-            "ecr:*"
-        ]
-        Effect   = "Allow"
-        Resource: "*"
-      },
-    ]
-  })
-}
-
-#Create an IAM Role
-resource "aws_iam_role" "ec2-role" {
-  name = "ec2--Role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = "RoleForEC2"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      },
-    ]
-  })
-}
-
-resource "aws_iam_policy_attachment" "ec2-ecr-attach" {
-  name       = "ec2-ecr-attachment"
-  roles      = [aws_iam_role.ec2-role.name]
-  policy_arn = aws_iam_policy.ecr-policy.arn
-}
-
-resource "aws_iam_instance_profile" "ec2-profile" {
-  name = "ec2-profile"
-  role = aws_iam_role.ec2-role.name
-}
-
-
 ##########################################
 ##########      PROD ENV
 ###########################################
@@ -157,8 +101,26 @@ resource "aws_security_group" "prod_web_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+   ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+   ingress {
+    from_port   = 8081
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+   ingress {
+    from_port   = 8082
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-    ingress {
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -264,3 +226,16 @@ module "elb" {
 #    evaluate_target_health = true
 #  }
 #}
+
+resource "aws_db_instance" "example_rds" {
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "mysql"
+  engine_version       = "5.7"
+  instance_class       = "db.t2.micro"  # Replace with your desired instance class
+  name                 = "myrds"
+  username             = "admin"
+  password             = "your_password"  # Replace with your desired RDS password
+  parameter_group_name = "default.mysql5.7"
+  skip_final_snapshot  = true  # Set to true to skip final DB snapshot on deletion
+}
