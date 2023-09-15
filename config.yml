@@ -30,7 +30,13 @@ main_vpc:
           key_name: "dentist-project-prod-key"
       rds :
         prod-db-postgres:
-           
-
+          db_name: "mydatabase"           # Replace with your desired database name
+          db_username: "postgres"           # Replace with your desired database username
+          db_password: "postgres"       # Replace with your desired database password
+          allocated_storage: 100          # Replace with your desired allocated storage in GB
+          engine: "postgres"
+          engine_version: "14"            # Use "14" for PostgreSQL 14 latest
+          instance_class: "db.t2.micro"   # Replace with your desired RDS instance type
+          skip_final_snapshot: false       # Set to true to skip final DB snapshot on deletion
 
           

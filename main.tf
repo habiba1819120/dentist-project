@@ -15,10 +15,6 @@ provider "aws" {
   secret_key = "H+vmYBkRD90C4Rj85QPMSbFcrQmvJofuOfpKkBxz"
 }
 
-
-
-
-
 ###########
 ####    VPC  
 ###########
@@ -47,7 +43,6 @@ resource "aws_subnet" "prod_subnet" {
     Name = "prod-${count.index + 1}"
   }
 }
-
 
 
 
@@ -90,7 +85,7 @@ resource "aws_route_table_association" "public_prod_rt_a" {
 ##########################################
 ##########      PROD ENV
 ###########################################
-
+## Security Group ###
 resource "aws_security_group" "prod_web_sg" {
   name   = "prod_web_sg"
   vpc_id = aws_vpc.main_vpc.id
@@ -142,6 +137,7 @@ resource "aws_security_group" "prod_web_sg" {
   }
 }
 
+#### Modules ####
 module "prod_ec2" {
   for_each = local.prod_ec2s
   source = "./ec2"
@@ -164,6 +160,29 @@ resource "aws_eip_association" "aws_eip_association" {
   allocation_id = data.aws_eip.aws_eip[each.key].id
 }
 
+#############
+resource "aws_security_group" "rds_sg" {
+  name        = "rds-sg"
+  description = "Security group for RDS instance"
+  vpc_id      = aws_vpc.main_vpc.id
+
+  # Define inbound rules to allow access to the RDS instance.
+  # Modify these rules as needed.
+  ingress {
+    from_port   = 5432  # PostgreSQL default port
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [aws_eip.aws_eip[each.key].public_ip]
+  }
+}
+module "elb" {
+  source = "./rds"
+  settings = local.rds
+  target =  module.prod_ec2
+  vpc =  aws_vpc.main_vpc
+  security_groups = aws_security_group.prod_rds_sg
+  subnets = aws_subnet.prod_subnet 
+}
 
 ###########
 ####   Load Balancer 
@@ -227,15 +246,3 @@ module "elb" {
 #  }
 #}
 
-resource "aws_db_instance" "example_rds" {
-  allocated_storage    = 20
-  storage_type         = "gp2"
-  engine               = "mysql"
-  engine_version       = "5.7"
-  instance_class       = "db.t2.micro"  # Replace with your desired instance class
-  name                 = "myrds"
-  username             = "admin"
-  password             = "your_password"  # Replace with your desired RDS password
-  parameter_group_name = "default.mysql5.7"
-  skip_final_snapshot  = true  # Set to true to skip final DB snapshot on deletion
-}
