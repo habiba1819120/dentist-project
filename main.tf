@@ -175,7 +175,7 @@ resource "aws_security_group" "rds_sg" {
     cidr_blocks = [aws_eip.aws_eip[each.key].public_ip]
   }
 }
-module "elb" {
+module rds" {
   source = "./rds"
   settings = local.rds
   target =  module.prod_ec2
