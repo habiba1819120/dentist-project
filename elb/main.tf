@@ -23,7 +23,7 @@ resource "aws_lb_target_group_attachment" "attach-lb-ec2" {
   for_each = var.target
   target_group_arn = aws_lb_target_group.front-target-lb.arn
   target_id = var.target[each.key].ec2_instance[0].id
-  port             = 80
+  port             = 680
 }
 
 #Create the load balancer
@@ -63,7 +63,7 @@ resource "aws_lb_listener" "front_end_https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = "arn:aws:acm:us-east-1:829465433345:certificate/f9b4e9c5-0466-468e-9b62-587afcdbd45f"
+  certificate_arn   = " arn:aws:acm:us-east-1:400374812320:certificate/9dfd66a0-bd31-48d3-b26a-d6d2987ab20f"
 
   default_action {
     type             = "forward"
