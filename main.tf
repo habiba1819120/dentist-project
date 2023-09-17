@@ -177,7 +177,8 @@ resource "aws_security_group" "rds_sg" {
 }
 module rds" {
   source = "./rds"
-  settings = local.rds
+  name = each.key
+  settings = each.value  
   target =  module.prod_ec2
   vpc =  aws_vpc.main_vpc
   security_groups = aws_security_group.prod_rds_sg
