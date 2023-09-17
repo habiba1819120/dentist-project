@@ -178,8 +178,8 @@ resource "aws_security_group" "rds_sg" {
 module "rds" {
   source = "./rds"  
   db_name              = each.key
-  db_username          = each.key
-  db_password        = each.key
+  username          = each.key
+  password        = each.key
   allocated_storage    = each.key
   engine               = each.key
   engine_version       = each.key
