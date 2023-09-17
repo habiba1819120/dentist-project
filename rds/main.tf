@@ -10,6 +10,7 @@ variable "vpc_security_group_ids" {}
 
 # Create RDS 
 resource "aws_db_instance" "rds_instance" {
+  db_name              = var.db_name
   allocated_storage    = var.allocated_storage
   engine               = var.engine
   engine_version       = var.engine_version
