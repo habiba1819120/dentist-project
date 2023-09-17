@@ -1,10 +1,10 @@
-variable "db_name" {}
-variable "db_username" {}
-variable "db_password" {}
-variable "allocated_storage" {}
-variable "engine" {}
-variable "engine_version" {}
-variable "instance_class" {}
+variable "db_name" { type = string }
+variable "db_username" { type = string }
+variable "db_password" { type = string }
+variable "allocated_storage" { type = number }
+variable "engine" { type = string }
+variable "engine_version" {  type = string }
+variable "instance_class" {  type = string }
 variable "skip_final_snapshot" { default = false }
 variable "vpc_security_group_ids" {}
 variable "parameter_group_name" {}
