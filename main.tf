@@ -174,6 +174,7 @@ resource "aws_security_group" "rds_sg" {
     cidr_blocks = [data.aws_eip.aws_eip]
   }
 }
+
 module "rds" {
   source = "./rds"  
   db_name              = each.key
