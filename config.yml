@@ -45,7 +45,7 @@ main_vpc:
           allocated_storage: 20       
           engine: "postgres"
           engine_version: "13.4"        
-          instance_class: "db.m4.small"
+          instance_class: "db.r5.large"
           skip_final_snapshot: false
 
                 
