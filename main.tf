@@ -96,25 +96,7 @@ resource "aws_security_group" "prod_web_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-   ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-   ingress {
-    from_port   = 8081
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-   ingress {
-    from_port   = 8082
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
+  
   ingress {
     from_port   = 443
     to_port     = 443
@@ -184,7 +166,7 @@ module "rds" {
   engine                = local.rds.prod-db-postgres.engine
   engine_version        = local.rds.prod-db-postgres.engine_version
   instance_class        = local.rds.prod-db-postgres.instance_class
-  parameter_group_name  = local.rds.prod-db-postgres.parameter_group_name
+  #parameter_group_name  = local.rds.prod-db-postgres.parameter_group_name
   skip_final_snapshot   = local.rds.prod-db-postgres.skip_final_snapshot
   #vpc =  aws_vpc.main_vpc
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
