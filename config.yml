@@ -28,15 +28,21 @@ main_vpc:
           type: "t2.micro"
           env: "prod"
           key_name: "dentist-project-prod-key"
+        prod-server-02:
+          amount: 1
+          ami: "ami-007855ac798b5175e"
+          type: "t2.micro"
+          env: "prod"
+          key_name: "dentist-project-prod-key"
       rds :
         prod-db-postgres:
           env: "prod"
           db_name: "mydatabase"       
           db_username: "postgres"        
           db_password: "postgres"     
-          allocated_storage: 100         
+          allocated_storage: 20       
           engine: "postgres"
-          engine_version: 14         
+          engine_version: "14.4"        
           instance_class: "db.t2.micro"
           skip_final_snapshot: false
 
