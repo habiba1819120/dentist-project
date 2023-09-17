@@ -38,6 +38,7 @@ main_vpc:
           engine: "postgres"
           engine_version: "14"            # Use "14" for PostgreSQL 14 latest
           instance_class: "db.t2.micro"   # Replace with your desired RDS instance type
+          parameter_group_name: "DENTIST GROUP1"
           skip_final_snapshot: false       # Set to true to skip final DB snapshot on deletion
 
           
