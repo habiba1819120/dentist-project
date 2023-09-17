@@ -4,6 +4,8 @@ main_vpc:
    # should be created in console, then add the id here 
   prod_aws_eips :
       prod-server-01: "eipalloc-0207bd645a5637dd7" 
+      prod-server-02: "eipalloc-019dfa79af50c6310" 
+      
       
   cidr  : "10.0.0.0/16"
   environment: 
