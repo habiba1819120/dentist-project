@@ -193,14 +193,13 @@ resource "aws_security_group" "rds_sg" {
 }
 module "rds" {
   source = "./rds"  
-  db_name              = local.rds
+  db_name              = each.key
   allocated_storage    = each.key
   engine               = each.key
   engine_version       = each.key
   instance_class       = each.key
-  name                 = each.key
-  username             = each.key
-  password             = each.key
+  db_usernameusername  = each.key
+  db_passwordpassword  = each.key
   skip_final_snapshot  = each.key
   subnets = aws_subnet.db_subnet
   #vpc =  aws_vpc.main_vpc
