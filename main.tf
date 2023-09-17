@@ -166,7 +166,6 @@ module "rds" {
   engine                = local.rds.prod-db-postgres.engine
   engine_version        = local.rds.prod-db-postgres.engine_version
   instance_class        = local.rds.prod-db-postgres.instance_class
-  #parameter_group_name  = local.rds.prod-db-postgres.parameter_group_name
   skip_final_snapshot   = local.rds.prod-db-postgres.skip_final_snapshot
   #vpc =  aws_vpc.main_vpc
   vpc_security_group_ids = [aws_security_group.rds_sg.id]

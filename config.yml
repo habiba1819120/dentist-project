@@ -38,7 +38,6 @@ main_vpc:
           engine: "postgres"
           engine_version: 14         
           instance_class: "db.t2.micro"
-          #parameter_group_name: "DENTIST GROUP1"
           skip_final_snapshot: false
 
                 
