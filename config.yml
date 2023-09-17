@@ -44,8 +44,8 @@ main_vpc:
           db_password: "postgres"     
           allocated_storage: 20       
           engine: "postgres"
-          engine_version: "13"        
-          instance_class: "db.t2.micro"
+          engine_version: "13.4"        
+          instance_class: "db.m4.small"
           skip_final_snapshot: false
 
                 

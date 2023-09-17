@@ -80,29 +80,12 @@ resource "aws_route_table_association" "public_prod_rt_a" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-####
-#Create an IAM Role
-resource "aws_iam_role" "ec2-role" {
-  name = "ec2--Role"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = "RoleForEC2"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      },
-    ]
-  })
-}
+  
 
 resource "aws_iam_instance_profile" "ec2-profile" {
   name = "ec2-profile"
-  role = aws_iam_role.ec2-role.name
+  role = "arn:aws:iam::400374812320:instance-profile/ec2-role"
 }
 ##########################################
 ##########      PROD ENV
