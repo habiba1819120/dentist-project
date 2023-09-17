@@ -175,9 +175,8 @@ resource "aws_security_group" "rds_sg" {
     cidr_blocks = [aws_eip.aws_eip[each.key].public_ip]
   }
 }
-module rds" {
+module "rds" {
   source = "./rds"
-  name = each.key
   settings = each.value  
   target =  module.prod_ec2
   vpc =  aws_vpc.main_vpc
