@@ -184,7 +184,7 @@ module "rds" {
   engine                = local.rds
   engine_version        = local.rds
   instance_class        = local.rds
-  #parameter_group_name = local.rds
+  parameter_group_name = local.rds
   skip_final_snapshot   = local.rds
   #vpc =  aws_vpc.main_vpc
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
