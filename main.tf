@@ -83,10 +83,10 @@ resource "aws_route_table_association" "public_prod_rt_a" {
 
   
 
-resource "aws_iam_instance_profile" "ec2-profile" {
-  name = "ec2-profile"
-  role = "arn:aws:iam::400374812320:instance-profile/ec2-role"
-}
+#resource "aws_iam_instance_profile" "ec2-profile" {
+#  name = "ec2-profile"
+#  role = "arn:aws:iam::400374812320:instance-profile/ec2-role"
+#}
 ##########################################
 ##########      PROD ENV
 ###########################################
@@ -131,7 +131,7 @@ module "prod_ec2" {
   name = each.key
   settings = each.value  
   subnets = aws_subnet.prod_subnet
-  iam_instance_profile = aws_iam_instance_profile.ec2-profile.name
+  #iam_instance_profile = aws_iam_instance_profile.ec2-profile.name
   vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
 }
 
