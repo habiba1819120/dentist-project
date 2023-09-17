@@ -28,17 +28,20 @@ main_vpc:
           type: "t2.micro"
           env: "prod"
           key_name: "dentist-project-prod-key"
+
+          
       rds :
         prod-db-postgres:
           env: "prod"
-          db_name: "mydatabase"           # Replace with your desired database name
-          db_username: "postgres"           # Replace with your desired database username
-          db_password: "postgres"       # Replace with your desired database password
-          allocated_storage: 100          # Replace with your desired allocated storage in GB
+          db_name: "mydatabase"          
+          db_username: "postgres"          
+          db_password: "postgres"      
+          allocated_storage: 100         
           engine: "postgres"
-          engine_version: "14"            # Use "14" for PostgreSQL 14 latest
-          instance_class: "db.t2.micro"   # Replace with your desired RDS instance type
+          engine_version: "14"           
+          instance_class: "db.t2.micro"   
           parameter_group_name: "DENTIST GROUP1"
-          skip_final_snapshot: false       # Set to true to skip final DB snapshot on deletion
+          skip_final_snapshot: false 
+                
 
           
