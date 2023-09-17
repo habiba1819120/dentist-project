@@ -184,10 +184,11 @@ module "rds" {
   engine               = each.key
   engine_version       = each.key
   instance_class       = each.key
-  parameter_group_name = each.key
+  #parameter_group_name = each.key
   skip_final_snapshot  = each.key
   #vpc =  aws_vpc.main_vpc
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  subnets = aws_subnet.prod_subnet 
 
 }
 
