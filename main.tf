@@ -42,6 +42,7 @@ resource "aws_subnet" "prod_subnet" {
   tags = {
     Name = "prod-${count.index + 1}"
   }
+}
 resource "aws_subnet" "db_subnet" {
   count = length(local.rds)
 
