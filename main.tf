@@ -177,7 +177,7 @@ resource "aws_security_group" "rds_sg" {
 
 module "rds" {
   source = "./rds"  
-  db_name               = local.rds.db_name 
+  db_name               = local.rds.prod-db-postgres.db_name 
   db_username           = local.rds.db_username   
   db_password           = local.rds.db_password 
   allocated_storage     = local.rds.allocated_storage 
