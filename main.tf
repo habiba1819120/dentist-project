@@ -45,8 +45,6 @@ resource "aws_subnet" "prod_subnet" {
 }
 
 
-
-
 resource "aws_internet_gateway" "main_ig" {
   vpc_id = aws_vpc.main_vpc.id
 
@@ -146,7 +144,6 @@ module "prod_ec2" {
   name = each.key
   settings = each.value  
   subnets = aws_subnet.prod_subnet
-  iam_instance_profile = aws_iam_instance_profile.ec2-profile.name
   vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
 }
 
@@ -180,14 +177,14 @@ resource "aws_security_group" "rds_sg" {
 module "rds" {
   source = "./rds"  
   db_name              = each.key
+  db_username          = each.key
+  db_password        = each.key
   allocated_storage    = each.key
   engine               = each.key
   engine_version       = each.key
   instance_class       = each.key
-  db_username          = each.key
-  db_password          = each.key
+  parameter_group_name = each.key
   skip_final_snapshot  = each.key
-  subnets = aws_subnet.db_subnet
   #vpc =  aws_vpc.main_vpc
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 

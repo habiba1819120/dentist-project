@@ -1,7 +1,6 @@
 variable "name" {}
 variable "settings" {}
 variable "subnets" {}
-variable "iam_instance_profile" {}
 variable "vpc_security_group_ids" {}
 
 
