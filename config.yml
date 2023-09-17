@@ -29,7 +29,7 @@ main_vpc:
           env: "prod"
           key_name: "dentist-project-prod-key"
 
-          
+
       rds :
         prod-db-postgres:
           env: "prod"
@@ -38,7 +38,7 @@ main_vpc:
           db_password: "postgres"      
           allocated_storage: 100         
           engine: "postgres"
-          engine_version: "14"           
+          engine_version: 14           
           instance_class: "db.t2.micro"   
           parameter_group_name: "DENTIST GROUP1"
           skip_final_snapshot: false 
