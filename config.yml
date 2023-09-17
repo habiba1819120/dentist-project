@@ -27,8 +27,7 @@ main_vpc:
           ami: "ami-007855ac798b5175e"
           type: "t2.micro"
           env: "prod"
-          name: "dentist-project-prod-key"
-
+          key_name: "dentist-project-prod-key"
       rds :
         prod-db-postgres:
           env: "prod"
@@ -40,6 +39,7 @@ main_vpc:
           engine_version: 14         
           instance_class: "db.t2.micro"
           parameter_group_name: "DENTIST GROUP1"
+
                 
 
           

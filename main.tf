@@ -141,7 +141,7 @@ resource "aws_security_group" "prod_web_sg" {
 module "prod_ec2" {
   for_each = local.prod_ec2s
   source = "./ec2"
-  name = local.name
+  name = each.key
   settings = each.value  
   subnets = aws_subnet.prod_subnet
   vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
@@ -171,7 +171,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 5432  # PostgreSQL default port
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = [for subnet in aws_subnet.prod_subnet : subnet.cidr_block]
+     cidr_blocks = [for subnet in aws_subnet.prod_subnet : subnet.cidr_block]
   }
 }
 
