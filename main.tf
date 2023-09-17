@@ -42,6 +42,16 @@ resource "aws_subnet" "prod_subnet" {
   tags = {
     Name = "prod-${count.index + 1}"
   }
+resource "aws_subnet" "db_subnet" {
+  count = length(local.rds)
+
+  cidr_block = "10.0.${count.index}.0/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
+  vpc_id     = aws_vpc.main_vpc.id
+  availability_zone = data.aws_availability_zones.az.names[count.index]
+
+  tags = {
+    Name = "prod-${count.index + 1}"
+  }
 }
 
 
@@ -78,6 +88,11 @@ resource "aws_route_table" "public_rt" {
 resource "aws_route_table_association" "public_prod_rt_a" {
   count = length(local.prod_ec2s)
   subnet_id      = aws_subnet.prod_subnet[count.index].id
+  route_table_id = aws_route_table.public_rt.id
+}
+resource "aws_route_table_association" "public_rds_rt_a" {
+  count = length(local.rds)
+  subnet_id      = aws_subnet.db_subnet[count.index].id
   route_table_id = aws_route_table.public_rt.id
 }
 
@@ -186,10 +201,10 @@ module "rds" {
   username             = each.key
   password             = each.key
   skip_final_snapshot  = each.key
-  target =  module.prod_ec2
+  subnets = aws_subnet.db_subnet
   vpc =  aws_vpc.main_vpc
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  subnets = aws_subnet.prod_subnet 
+
 }
 
 ###########

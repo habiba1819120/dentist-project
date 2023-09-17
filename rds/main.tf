@@ -1,4 +1,3 @@
-variable "settings" {}
 variable "db_name" {}
 variable "db_username" {}
 variable "db_password" {}
@@ -8,6 +7,7 @@ variable "engine_version" {}
 variable "instance_class" {}
 variable "skip_final_snapshot" { default = false }
 variable "vpc_security_group_ids" {}
+variable "subnets" {}
 
 # Create RDS 
 resource "aws_db_instance" "rds_instance" {
@@ -20,6 +20,7 @@ resource "aws_db_instance" "rds_instance" {
   username             = var.db_username
   password             = var.db_password
   skip_final_snapshot  = var.skip_final_snapshot
+  subnet_id     = var.subnets[count.index].id 
   #vpc_security_group_ids = var.vpc_security_group_ids
   # Additional configuration parameters can be set here
 
