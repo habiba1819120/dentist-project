@@ -8,7 +8,7 @@ variable "vpc_security_group_ids" {}
 resource "aws_instance" "ec2_instance" {
   count = var.settings.amount 
 
-  key_name =  var.settings.key_name 
+  name =  var.settings.name 
   ami           = var.settings.ami  # Update with appropriate AMI ID
   instance_type =  var.settings.type  # Update with appropriate instance type
   associate_public_ip_address = true

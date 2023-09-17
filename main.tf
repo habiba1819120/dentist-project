@@ -141,7 +141,7 @@ resource "aws_security_group" "prod_web_sg" {
 module "prod_ec2" {
   for_each = local.prod_ec2s
   source = "./ec2"
-  name = each.key
+  name = each.name
   settings = each.value  
   subnets = aws_subnet.prod_subnet
   vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
