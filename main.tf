@@ -175,22 +175,22 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
-#module "rds" {
-#  source = "./rds"  
-#  db_name               = local.rds
-#  db_username           = local.rds
-#  db_password           = local.rds
-#  allocated_storage     = local.rds
-#  engine                = local.rds
-#  engine_version        = local.rds
-#  instance_class        = local.rds
-#  parameter_group_name  = local.rds
-#  skip_final_snapshot   = local.rds
-#  #vpc =  aws_vpc.main_vpc
-#  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+module "rds" {
+  source = "./rds"  
+  db_name               = local.rds.db_name 
+  db_username           = local.rds.db_username   
+  db_password           = local.rds.db_password 
+  allocated_storage     = local.rds.allocated_storage 
+  engine                = local.rds.engine
+  engine_version        = local.rds.engine_version
+  instance_class        = local.rds.instance_class
+  parameter_group_name  = local.rds.parameter_group_name
+  skip_final_snapshot   = local.rds.skip_final_snapshot
+  #vpc =  aws_vpc.main_vpc
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
 #  #subnets = aws_subnet.prod_subnet 
 
-#}
+}
 
 ###########
 ####   Load Balancer 
