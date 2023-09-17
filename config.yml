@@ -26,13 +26,13 @@ main_vpc:
       ec2:
         prod-server-01:
           amount: 1
-          ami: "ami-007855ac798b5175e"
+          ami: "ami-04cb4ca688797756f"
           type: "t2.micro"
           env: "prod"
           key_name: "dentist-project-prod-key"
         prod-server-02:
           amount: 1
-          ami: "ami-007855ac798b5175e"
+          ami: "ami-04cb4ca688797756f"
           type: "t2.micro"
           env: "prod"
           key_name: "dentist-project-prod-key"
