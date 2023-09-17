@@ -180,7 +180,7 @@ module "rds" {
   settings = each.value  
   target =  module.prod_ec2
   vpc =  aws_vpc.main_vpc
-  security_groups = aws_security_group.prod_rds_sg
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
   subnets = aws_subnet.prod_subnet 
 }
 
