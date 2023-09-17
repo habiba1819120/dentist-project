@@ -198,8 +198,8 @@ module "rds" {
   engine               = each.key
   engine_version       = each.key
   instance_class       = each.key
-  db_usernameusername  = each.key
-  db_passwordpassword  = each.key
+  db_username          = each.key
+  db_password          = each.key
   skip_final_snapshot  = each.key
   subnets = aws_subnet.db_subnet
   #vpc =  aws_vpc.main_vpc
