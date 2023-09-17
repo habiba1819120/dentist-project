@@ -80,8 +80,30 @@ resource "aws_route_table_association" "public_prod_rt_a" {
   route_table_id = aws_route_table.public_rt.id
 }
 
+####
+#Create an IAM Role
+resource "aws_iam_role" "ec2-role" {
+  name = "ec2--Role"
 
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = "RoleForEC2"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
 
+resource "aws_iam_instance_profile" "ec2-profile" {
+  name = "ec2-profile"
+  role = aws_iam_role.ec2-role.name
+}
 ##########################################
 ##########      PROD ENV
 ###########################################
@@ -119,13 +141,14 @@ resource "aws_security_group" "prod_web_sg" {
   }
 }
 
-#### Modules ####
+#### Modules EC2 ####
 module "prod_ec2" {
   for_each = local.prod_ec2s
   source = "./ec2"
   name = each.key
   settings = each.value  
   subnets = aws_subnet.prod_subnet
+  iam_instance_profile = aws_iam_instance_profile.ec2-profile.name
   vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
 }
 
