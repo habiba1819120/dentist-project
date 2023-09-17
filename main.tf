@@ -81,12 +81,7 @@ resource "aws_route_table_association" "public_prod_rt_a" {
 }
 
 
-  
 
-#resource "aws_iam_instance_profile" "ec2-profile" {
-#  name = "ec2-profile"
-#  role = "arn:aws:iam::400374812320:instance-profile/ec2-role"
-#}
 ##########################################
 ##########      PROD ENV
 ###########################################
