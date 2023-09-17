@@ -33,14 +33,14 @@ main_vpc:
       rds :
         prod-db-postgres:
           env: "prod"
-          db_name: "mydatabase"          
-          db_username: "postgres"          
-          db_password: "postgres"      
+          db_name: 'mydatabase'         
+          db_username: 'postgres'         
+          db_password: 'postgres'      
           allocated_storage: 100         
-          engine: "postgres"
-          engine_version: 14           
-          instance_class: "db.t2.micro"   
-          parameter_group_name: "DENTIST GROUP1"
+          engine: 'postgres'
+          engine_version: '14'          
+          instance_class: 'db.t2.micro'
+          parameter_group_name: 'DENTIST GROUP1'
           skip_final_snapshot: false 
                 
 
