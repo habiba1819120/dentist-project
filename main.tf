@@ -188,7 +188,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 5432  # PostgreSQL default port
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = [aws_eip.aws_eip[each.key].public_ip]
+    cidr_blocks = [data.aws_eip.aws_eip]
   }
 }
 module "rds" {
