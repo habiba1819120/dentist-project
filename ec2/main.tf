@@ -15,6 +15,13 @@ resource "aws_instance" "ec2_instance" {
   tags = {
     Name = var.name
   }
+ user_data = <<-EOF
+    #!/bin/bash
+    sudo apt-get update
+    sudo apt-get install -y ngnix
+    sudo systemctl start ngnix
+    sudo systemctl enable ngnix
+  EOF
 
 }
 
