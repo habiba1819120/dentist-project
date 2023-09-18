@@ -44,7 +44,6 @@ resource "aws_subnet" "prod_subnet" {
   }
 }
 
-
 resource "aws_internet_gateway" "main_ig" {
   vpc_id = aws_vpc.main_vpc.id
 
@@ -172,66 +171,4 @@ module "rds" {
 #  #subnets = aws_subnet.prod_subnet 
 
 }
-
-###########
-####   Load Balancer 
-###########
-
-###### elb and  target group
-module "elb" {
-  source = "./elb"
-  settings = local.elb
-  target =  module.prod_ec2
-  vpc =  aws_vpc.main_vpc
-  security_groups = aws_security_group.prod_web_sg
-  subnets = aws_subnet.prod_subnet 
-}
-
-
-
-###########
-####   route53 
-###########
-
-##### route53 record
-
-#data "aws_route53_zone" "dentistapp" {
-#  name         = "dentistapp.com."
-#}
-
-#resource "aws_route53_record" "alias_route53_record" {
-#  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
-#  name    = "pocketpropertiesapp.com" # Replace with your name/domain/subdomain
-#  type    = "A"
-
-#  alias {
-#    name                   = module.elb.prod-elb.dns_name
-#    zone_id                = module.elb.prod-elb.zone_id
-#    evaluate_target_health = true
-#  }
-#}
-
-#resource "aws_route53_record" "alias_route53_record-api" {
-#  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
-#  name    = "admin" # Replace with your name/domain/subdomain
-#  type    = "A"
-
-#  alias {
-#    name                   = module.elb.prod-elb.dns_name
-#    zone_id                = module.elb.prod-elb.zone_id
-#    evaluate_target_health = true
-#  }
-#}
-
-#resource "aws_route53_record" "alias_route53_record-admin" {
-#  zone_id = data.aws_route53_zone.pocketpropertiesapp.zone_id # Replace with your zone ID
-#  name    = "api." # Replace with your name/domain/subdomain
-#  type    = "A"
-
-#  alias {
-#    name                   = module.elb.prod-elb.dns_name
-#    zone_id                = module.elb.prod-elb.zone_id
-#    evaluate_target_health = true
-#  }
-#}
 

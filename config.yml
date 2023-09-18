@@ -4,33 +4,13 @@ main_vpc:
    # should be created in console, then add the id here 
   prod_aws_eips :
       prod-server-01: "eipalloc-0207bd645a5637dd7" 
-      prod-server-02: "eipalloc-019dfa79af50c6310" 
       
       
   cidr  : "10.0.0.0/16"
   environment: 
     prod:
-      elb:
-        name: "front-lb"
-        type: "application"
-        enable_deletion: false
-        env: "prod"
-        target_group:
-            name         : "application-front"
-            port         : 80
-            protocol     : "HTTP"
-        listeners:
-            type         : "forward"
-            port         : 80
-            protocol     : "HTTP"
       ec2:
         prod-server-01:
-          amount: 1
-          ami: "ami-04cb4ca688797756f"
-          type: "t2.micro"
-          env: "prod"
-          key_name: "dentist-project-prod-key"
-        prod-server-02:
           amount: 1
           ami: "ami-04cb4ca688797756f"
           type: "t2.micro"
