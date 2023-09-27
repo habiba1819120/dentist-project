@@ -18,12 +18,12 @@ provider "aws" {
 resource "aws_vpc" "main_vpc" {
   cidr_block = "10.0.0.0/16" # Replace with your desired VPC CIDR block
   tags = {
-    Name = "CustomVPC"
+    Name = "mainVPC"
   }
 }
 
 resource "aws_subnet" "rds_subnet" {
-  vpc_id     = aws_vpc.main_vpc_vpc.id
+  vpc_id     = aws_vpc.main_vpc.id
   cidr_block = "10.0.1.0/24" # Replace with your desired RDS subnet CIDR block
   availability_zone = "us-east-1a" # Replace with your desired availability zone
   tags = {
@@ -49,7 +49,7 @@ resource "aws_subnet" "ec2_subnet" {
 
 resource "aws_security_group" "rds_sg" {
   name_prefix        = "rds-sg-"
-  vpc_id             = aws_vpc.custom_vpc.id
+  vpc_id             = aws_vpc.main_vpc.id
 
   # Add rules to allow incoming traffic from your EC2 instance
   ingress {
@@ -62,7 +62,7 @@ resource "aws_security_group" "rds_sg" {
 
 resource "aws_security_group" "ec2_sg" {
   name_prefix        = "ec2-sg-"
-  vpc_id             = aws_vpc.custom_vpc.id
+  vpc_id             = aws_vpc.main_vpc.id
 
   # Add rules to allow outgoing traffic to the public RDS instance
   egress {
