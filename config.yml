@@ -1,0 +1,33 @@
+repositories:
+  - "dentist-project-prod" 
+main_vpc:
+   # should be created in console, then add the id here 
+  prod_aws_eips :
+      prod-server-01: "eipalloc-0207bd645a5637dd7" 
+      
+      
+  cidr  : "10.0.0.0/16"
+  environment: 
+    prod:
+      ec2:
+        prod-server-01:
+          amount: 1
+          ami: "ami-04cb4ca688797756f"
+          type: "t2.micro"
+          env: "prod"
+          key_name: "dentist-project-prod-key"
+      rds :
+        prod-db-postgres:
+          env: "prod"
+          db_name: "mydatabase"       
+          db_username: "postgres"        
+          db_password: "postgres"     
+          allocated_storage: 20       
+          engine: "postgres"
+          engine_version: "11.16"        
+          instance_class: "db.t3.medium"
+          skip_final_snapshot: false
+
+                
+
+          
