@@ -16,34 +16,81 @@ provider "aws" {
 }
 ####################  VPC Configuration
 resource "aws_vpc" "main_vpc" {
-  cidr_block = "10.0.0.0/16" # Replace with your desired VPC CIDR block
   tags = {
-    Name = "CustomVPC"
+    Name = "main-vpc"
   }
+  cidr_block = local.main_vpc.cidr
+  
 }
 
-resource "aws_subnet" "rds_subnet" {
+# Create Subnets
+data "aws_availability_zones" "az" {
+  state = "available"
+}
+resource "aws_subnet" "prod_subnet" {
+  count = length(local.prod_ec2s)
+
+  cidr_block = "10.0.${count.index}.0/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
   vpc_id     = aws_vpc.main_vpc.id
-  cidr_block = "10.0.1.0/24" # Replace with your desired RDS subnet CIDR block
-  availability_zone = "us-east-1a" # Replace with your desired availability zone
+  availability_zone = data.aws_availability_zones.az.names[count.index]
+
   tags = {
-    Name = "RDS_Subnet"
+    Name = "prod-${count.index + 1}"
   }
 }
 
+resource "aws_db_subnet_group" "rds_subnet" {
+  count = length(local.rds) 
+
+  cidr_block = "10.0.${count.index + length(local.rdss)}.0/24" #cidrsubnet(cidrsubnet(local.main_vpc.cidr, local.v4_env_offset,0), local.v4_env_offset+count.index,0) 
+  vpc_id     = aws_vpc.main_vpc.id
+  availability_zone = data.aws_availability_zones.az.names[count.index]
+
+  tags = {
+    Name = "rds-${count.index + 1}"
+  }
+}
 resource "aws_db_subnet_group" "rds_db_subnet_group" {
   name        = "denstistsubnetgroup"
   description = "Custom DB Subnet Group"
   subnet_ids  = [aws_subnet.rds_subnet.id]
 }
 
-resource "aws_subnet" "ec2_subnet" {
-  vpc_id     = aws_vpc.main_vpc.id
-  cidr_block = "10.0.2.0/24" # Replace with your desired EC2 subnet CIDR block
-  availability_zone = "us-east-1b" # Replace with your desired availability zone
+
+
+resource "aws_internet_gateway" "main_ig" {
+  vpc_id = aws_vpc.main_vpc.id
+
   tags = {
-    Name = "EC2_Subnet"
+    Name = "main Internet Gateway"
   }
+}
+
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main_ig.id
+  }
+
+  route {
+    ipv6_cidr_block = "::/0"
+    gateway_id      = aws_internet_gateway.main_ig.id
+  }
+
+  tags = {
+    Name = "Public Route Table"
+  }
+}
+
+
+
+resource "aws_route_table_association" "public_prod_rt_a" {
+  count = length(local.prod_ec2s)
+  subnet_id      = aws_subnet.prod_subnet[count.index].id
+  route_table_id = aws_route_table.public_rt.id
 }
 ###########Security Group ##############
 ##########################################"
@@ -128,7 +175,7 @@ module "rds" {
   db_username          = local.rds.prod-db-postgres.db_username 
   db_password          = local.rds.prod-db-postgres.db_password 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  db_subnet_group_name = "denstistsubnetgroup" 
+  db_subnet_group_name = [aws_db_subnet_group.rds_db_subnet_group.name] 
 
 
   skip_final_snapshot = true # Change based on your retention policy
