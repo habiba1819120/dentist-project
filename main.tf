@@ -32,7 +32,7 @@ resource "aws_subnet" "rds_subnet" {
 }
 
 resource "aws_db_subnet_group" "rds_db_subnet_group" {
-  name        = "DENTISTDBSubnetGroup"
+  name        = "denstistSubnetGroup"
   description = "Custom DB Subnet Group"
   subnet_ids  = [aws_subnet.rds_subnet.id]
 }
