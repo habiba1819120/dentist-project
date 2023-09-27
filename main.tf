@@ -119,7 +119,7 @@ resource "aws_eip_association" "aws_eip_association" {
 }
 ############# RDS ######
 module "rds" {
-  source = "./rds "
+  source = "./rds"
   allocated_storage    = local.rds.allocated_storage
   engine               = local.rds.engine
   engine_version       = local.rds. engine_version 
