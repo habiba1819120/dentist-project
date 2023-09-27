@@ -21,11 +21,12 @@ resource "aws_vpc" "main_vpc" {
   
 }
 
+
 # Create Subnets
 data "aws_availability_zones" "az" {
   state = "available"
 }
-resource "aws_subnet" "prod_subnet" {
+resource "aws_subnet" "ec2_subnet" {
   count = length(local.prod_ec2s)
 
   cidr_block = "10.0.${count.index}.0/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
@@ -34,10 +35,11 @@ resource "aws_subnet" "prod_subnet" {
 
   tags = {
     Name = "prod-${count.index + 1}"
+    
   }
 }
 
-resource "aws_internet_gateway" "main_ig" {
+resource "aws_internetjjj_gateway" "main_ig" {
   vpc_id = aws_vpc.main_vpc.id
 
   tags = {
@@ -66,7 +68,7 @@ resource "aws_route_table" "public_rt" {
 
 resource "aws_route_table_association" "public_prod_rt_a" {
   count = length(local.prod_ec2s)
-  subnet_id      = aws_subnet.prod_subnet[count.index].id
+  subnet_id      = aws_subnet.ec2_subnet[count.index].id
   route_table_id = aws_route_table.public_rt.id
 }
 ###########Security Group ##############
@@ -119,6 +121,7 @@ resource "aws_security_group" "ec2_sg" {
   }
  
 }
+
 ######################################################
 ##########" Resources ###############################
 module "prod_ec2" {
