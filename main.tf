@@ -84,7 +84,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 5432 # PostgreSQL default port
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = [aws_subnet.prod_subnet[count.index].cidr_block] 
+    cidr_blocks = ["10.0.0.0/24"]
   }
 }
 
