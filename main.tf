@@ -152,7 +152,7 @@ module "rds" {
   db_username          = local.rds.prod-db-postgres.db_username 
   db_password          = local.rds.prod-db-postgres.db_password 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-
+  
 
   skip_final_snapshot = true # Change based on your retention policy
 }

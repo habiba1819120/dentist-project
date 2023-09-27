@@ -7,7 +7,7 @@ variable "engine_version" {}
 variable "instance_class" {}
 variable "skip_final_snapshot" { default = false }
 variable "vpc_security_group_ids" {}
-variable "db_subnet_group_name"{}
+
 
 # Create RDS 
 resource "aws_db_instance" "rds_instance" {
@@ -19,7 +19,7 @@ resource "aws_db_instance" "rds_instance" {
   engine_version       = var.engine_version
   instance_class       = var.instance_class
   skip_final_snapshot  = var.skip_final_snapshot
-  #vpc_security_group_ids = var.vpc_security_group_ids
+  vpc_security_group_ids = var.vpc_security_group_ids
   # Additional configuration parameters can be set here
 
   tags = {
