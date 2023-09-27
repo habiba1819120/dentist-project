@@ -31,11 +31,6 @@ resource "aws_subnet" "rds_subnet" {
   }
 }
 
-resource "aws_db_subnet_group" "rds_db_subnet_group" {
-  name        = "DENTISTDBSubnetGroup"
-  description = "Custom DB Subnet Group"
-  subnet_ids  = [aws_subnet.rds_subnet.id]
-}
 
 resource "aws_subnet" "ec2_subnet" {
   vpc_id     = aws_vpc.main_vpc.id
@@ -113,13 +108,13 @@ resource "aws_db_instance" "mydb" {
   engine               = "postgres"
   engine_version       = "13.4"
   instance_class       = "db.t2.micro"
-  name                 = "mydb"
-  username             = "dbusername"
-  password             = "dbpassword"
+  db_name                 = "mydb"
+  db_username             = "dbusername"
+  db_password             = "dbpassword"
   parameter_group_name = "default.postgres13"
 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  subnet_group_name     = aws_db_subnet_group.rds_db_subnet_group.name# Replace with your subnet group name if needed
+  subnet_group_name     = "default" # Replace with your subnet group name if needed
 
   # Replace with your desired DB identifier and name
   identifier = "mydb"
