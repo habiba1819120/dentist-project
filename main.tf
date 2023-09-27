@@ -85,8 +85,6 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-
-
 resource "aws_route_table_association" "public_prod_rt_a" {
   count = length(local.prod_ec2s)
   subnet_id      = aws_subnet.prod_subnet[count.index].id
@@ -121,8 +119,8 @@ resource "aws_security_group" "ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8000
+    to_port     = 8000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
