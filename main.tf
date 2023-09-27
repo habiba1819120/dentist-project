@@ -8,9 +8,9 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1" # Update with appropriate region
-  access_key = "AKIAV2OBSZ2QIR4D5UHC"
-  secret_key = "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"
+  region = "eu-central-1" # Update with appropriate region
+  access_key = "AKIAV2OBSZ2QPY53SIVY"
+  secret_key = "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"
 }
 ####################  VPC Configuration
 resource "aws_vpc" "main_vpc" {
