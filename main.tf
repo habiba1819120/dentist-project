@@ -7,8 +7,6 @@ terraform {
   }
 }
 
-
-
 provider "aws" {
   region = "us-east-1" # Update with appropriate region
   access_key = "AKIAV2OBSZ2QIR4D5UHC"
@@ -38,25 +36,6 @@ resource "aws_subnet" "prod_subnet" {
     Name = "prod-${count.index + 1}"
   }
 }
-
-resource "aws_db_subnet_group" "rds_subnet" {
-  count = length(local.rds) 
-
-  cidr_block = "10.0.${count.index + length(local.rdss)}.0/24" #cidrsubnet(cidrsubnet(local.main_vpc.cidr, local.v4_env_offset,0), local.v4_env_offset+count.index,0) 
-  vpc_id     = aws_vpc.main_vpc.id
-  availability_zone = data.aws_availability_zones.az.names[count.index]
-
-  tags = {
-    Name = "rds-${count.index + 1}"
-  }
-}
-resource "aws_db_subnet_group" "rds_db_subnet_group" {
-  name        = "denstistsubnetgroup"
-  description = "Custom DB Subnet Group"
-  subnet_ids  = [aws_subnet.rds_subnet.id]
-}
-
-
 
 resource "aws_internet_gateway" "main_ig" {
   vpc_id = aws_vpc.main_vpc.id
@@ -173,7 +152,6 @@ module "rds" {
   db_username          = local.rds.prod-db-postgres.db_username 
   db_password          = local.rds.prod-db-postgres.db_password 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  db_subnet_group_name = [aws_db_subnet_group.rds_db_subnet_group.name] 
 
 
   skip_final_snapshot = true # Change based on your retention policy
