@@ -116,9 +116,6 @@ resource "aws_db_instance" "mydb" {
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   subnet_group_name     = "default" # Replace with your subnet group name if needed
 
-  # Replace with your desired DB identifier and name
-  identifier = "mydb"
-  db_name    = "mydb"
 
   skip_final_snapshot = true # Change based on your retention policy
 }
