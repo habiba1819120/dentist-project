@@ -110,7 +110,7 @@ data "aws_eip" "aws_eip" {
   for_each =  local.prod_ec2s
   id = local.prod_aws_eips[each.key]
 }
-
+###########
 #Associate EIP with EC2 Instance
 resource "aws_eip_association" "aws_eip_association" {
   for_each =  module.prod_ec2
