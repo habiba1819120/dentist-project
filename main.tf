@@ -11,84 +11,66 @@ terraform {
 
 provider "aws" {
   region = "us-east-1" # Update with appropriate region
-  access_key = "AKIAV2OBSZ2QGRDPF2K5"
-  secret_key = "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"
+  access_key = "AKIAV2OBSZ2QIR4D5UHC"
+  secret_key = "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"
 }
-
-###########
-####    VPC  
-###########
-
-####### Create VPC
+####################VPC Configuration
 resource "aws_vpc" "main_vpc" {
+  cidr_block = "10.0.0.0/16" # Replace with your desired VPC CIDR block
   tags = {
-    Name = "main-vpc"
+    Name = "CustomVPC"
   }
-  cidr_block = local.main_vpc.cidr
-  
 }
 
-# Create Subnets
-data "aws_availability_zones" "az" {
-  state = "available"
+resource "aws_subnet" "rds_subnet" {
+  vpc_id     = aws_vpc.main_vpc_vpc.id
+  cidr_block = "10.0.1.0/24" # Replace with your desired RDS subnet CIDR block
+  availability_zone = "us-east-1a" # Replace with your desired availability zone
+  tags = {
+    Name = "RDS_Subnet"
+  }
 }
-resource "aws_subnet" "prod_subnet" {
-  count = length(local.prod_ec2s)
 
-  cidr_block = "10.0.${count.index}.0/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
+resource "aws_db_subnet_group" "rds_db_subnet_group" {
+  name        = "DENTISTDBSubnetGroup"
+  description = "Custom DB Subnet Group"
+  subnet_ids  = [aws_subnet.rds_subnet.id]
+}
+
+resource "aws_subnet" "ec2_subnet" {
   vpc_id     = aws_vpc.main_vpc.id
-  availability_zone = data.aws_availability_zones.az.names[count.index]
-
+  cidr_block = "10.0.2.0/24" # Replace with your desired EC2 subnet CIDR block
+  availability_zone = "us-east-1b" # Replace with your desired availability zone
   tags = {
-    Name = "prod-${count.index + 1}"
+    Name = "EC2_Subnet"
+  }
+}
+###########Security Group ##############""
+
+resource "aws_security_group" "rds_sg" {
+  name_prefix        = "rds-sg-"
+  vpc_id             = aws_vpc.custom_vpc.id
+
+  # Add rules to allow incoming traffic from your EC2 instance
+  ingress {
+    from_port   = 5432 # PostgreSQL default port
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [aws_subnet.ec2_subnet.cidr_block]
   }
 }
 
-resource "aws_internet_gateway" "main_ig" {
-  vpc_id = aws_vpc.main_vpc.id
+resource "aws_security_group" "ec2_sg" {
+  name_prefix        = "ec2-sg-"
+  vpc_id             = aws_vpc.custom_vpc.id
 
-  tags = {
-    Name = "main Internet Gateway"
+  # Add rules to allow outgoing traffic to the public RDS instance
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.main_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main_ig.id
-  }
-
-  route {
-    ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.main_ig.id
-  }
-
-  tags = {
-    Name = "Public Route Table"
-  }
-}
-
-
-
-resource "aws_route_table_association" "public_prod_rt_a" {
-  count = length(local.prod_ec2s)
-  subnet_id      = aws_subnet.prod_subnet[count.index].id
-  route_table_id = aws_route_table.public_rt.id
-}
-
-
-
-##########################################
-##########      PROD ENV
-###########################################
-## Security Group ###
-resource "aws_security_group" "prod_web_sg" {
-  name   = "prod_web_sg"
-  vpc_id = aws_vpc.main_vpc.id
-
   ingress {
     from_port   = 80
     to_port     = 80
@@ -109,66 +91,40 @@ resource "aws_security_group" "prod_web_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+ 
+}
+###################EC2
+resource "aws_instance" "ec2_instance" {
+  ami           = "ami-04cb4ca688797756f" # Replace with your desired AMI ID
+  instance_type = "t2.micro"              # Replace with your desired instance type
+  subnet_id     = aws_subnet.ec2_subnet.id
+  key_name      = "testonly"         # Replace with your EC2 key pair name
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["0.0.0.0/0"]
+  security_groups = [aws_security_group.ec2_sg.name]
+
+  tags = {
+    Name = "MyEC2Instance"
   }
 }
+############# RDS ######
+resource "aws_db_instance" "mydb" {
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "postgres"
+  engine_version       = "13.4"
+  instance_class       = "db.t2.micro"
+  name                 = "mydb"
+  username             = "dbusername"
+  password             = "dbpassword"
+  parameter_group_name = "default.postgres13"
 
-#### Modules EC2 ####
-module "prod_ec2" {
-  for_each = local.prod_ec2s
-  source = "./ec2"
-  name = each.key
-  settings = each.value  
-  subnets = aws_subnet.prod_subnet
-  vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
-}
-
-data "aws_eip" "aws_eip" {
-  for_each =  local.prod_ec2s
-  id = local.prod_aws_eips[each.key]
-}
-
-#Associate EIP with EC2 Instance
-resource "aws_eip_association" "aws_eip_association" {
-  for_each =  module.prod_ec2
-  instance_id = module.prod_ec2[each.key].ec2_instance[0].id
-  allocation_id = data.aws_eip.aws_eip[each.key].id
-}
-
-#############
-resource "aws_security_group" "rds_sg" {
-  name        = "rds-sg"
-  description = "Security group for RDS instance"
-  vpc_id      = aws_vpc.main_vpc.id
-
-  # Define inbound rules to allow access to the RDS instance.
-  # Modify these rules as needed.
-  ingress {
-    from_port   = 5432  # PostgreSQL default port
-    to_port     = 5432
-    protocol    = "tcp"
-     cidr_blocks = [for subnet in aws_subnet.prod_subnet : subnet.cidr_block]
-  }
-}
-
-module "rds" {
-  source = "./rds"  
-  db_name               = local.rds.prod-db-postgres.db_name 
-  db_username           = local.rds.prod-db-postgres.db_username   
-  db_password           = local.rds.prod-db-postgres.db_password 
-  allocated_storage     = local.rds.prod-db-postgres.allocated_storage 
-  engine                = local.rds.prod-db-postgres.engine
-  engine_version        = local.rds.prod-db-postgres.engine_version
-  instance_class        = local.rds.prod-db-postgres.instance_class
-  skip_final_snapshot   = local.rds.prod-db-postgres.skip_final_snapshot
-  #vpc =  aws_vpc.main_vpc
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-#  #subnets = aws_subnet.prod_subnet 
+  subnet_group_name     = aws_db_subnet_group.rds_db_subnet_group.name# Replace with your subnet group name if needed
 
+  # Replace with your desired DB identifier and name
+  identifier = "mydb"
+  db_name    = "mydb"
+
+  skip_final_snapshot = true # Change based on your retention policy
 }
 
