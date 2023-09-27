@@ -23,7 +23,7 @@ resource "aws_vpc" "main_vpc" {
 }
 
 resource "aws_subnet" "rds_subnet" {
-  vpc_id     = aws_vpc.main_vpc_vpc.id
+  vpc_id     = aws_vpc.main_vpc.id
   cidr_block = "10.0.1.0/24" # Replace with your desired RDS subnet CIDR block
   availability_zone = "us-east-1a" # Replace with your desired availability zone
   tags = {
@@ -103,7 +103,7 @@ module "prod_ec2" {
   name = each.key
   settings = each.value  
   subnets = aws_subnet.ec2_subnet
-  vpc_security_group_ids = [aws_security_group.prod_web_sg.id]
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
 }
 
 data "aws_eip" "aws_eip" {
@@ -120,13 +120,13 @@ resource "aws_eip_association" "aws_eip_association" {
 ############# RDS ######
 module "rds" {
   source = "./rds"
-  allocated_storage    = local.rds.allocated_storage
-  engine               = local.rds.engine
-  engine_version       = local.rds. engine_version 
-  instance_class       = local.rds.instance_class 
-  db_name              = local.rds.db_name  
-  db_username          = local.rds.db_username 
-  db_password          = local.rds.db_password 
+  allocated_storage    = local.rds.prod-db-postgres.allocated_storage
+  engine               = local.rds.prod-db-postgres.engine
+  engine_version       = local.rds.prod-db-postgres.engine_version 
+  instance_class       = local.rds.prod-db-postgres.instance_class 
+  db_name              = local.rds.prod-db-postgres.db_name  
+  db_username          = local.rds.prod-db-postgres.db_username 
+  db_password          = local.rds.prod-db-postgres.db_password 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   #subnet_group_name     = "default" # Replace with your subnet group name if needed
 
