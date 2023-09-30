@@ -12,10 +12,10 @@ main_vpc:
       ec2:
         prod-server-01:
           amount: 1
-          ami: "ami-04cb4ca688797756f"
+          ami: "ami-04cb4ca688797756f" 
           type: "t2.micro"
           env: "prod"
-          key_name: "dentist-project-prod-key"
+          key_name: "testonly"
       rds :
         prod-db-postgres:
           env: "prod"
@@ -24,7 +24,7 @@ main_vpc:
           db_password: "postgres"     
           allocated_storage: 20       
           engine: "postgres"
-          engine_version: "11.16"        
+          engine_version: "15.7"        
           instance_class: "db.t3.medium"
           skip_final_snapshot: false
 
