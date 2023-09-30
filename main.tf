@@ -29,7 +29,7 @@ data "aws_availability_zones" "az" {
 resource "aws_subnet" "rds_subnet" {
   count = length(local.rds)
 
-  cidr_block = "10.0.0.0/24"
+  cidr_block = "10.10.0.0/24"
   vpc_id     = aws_vpc.main_vpc.id
   availability_zone = "us-east-1a"
   tags = {
