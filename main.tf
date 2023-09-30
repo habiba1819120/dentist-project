@@ -38,6 +38,7 @@ resource "aws_subnet" "prod_subnet" {
     Name = "prod-${count.index + 1}"
     
   }
+}
 resource "aws_db_subnet_group" "custom_db_subnet_group" {
   name       = "my-custom-db-subnet-group"
   description = "Custom DB Subnet Group"
