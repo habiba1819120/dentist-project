@@ -26,22 +26,7 @@ resource "aws_vpc" "main_vpc" {
 data "aws_availability_zones" "az" {
   state = "available"
 }
-resource "aws_subnet" "rds_subnet" {
-  count = length(local.rds)
 
-  cidr_block = "10.0.${count.index}.0/24"
-  vpc_id     = aws_vpc.main_vpc.id
-  availability_zone = data.aws_availability_zones.az.names[count.index % length(data.aws_availability_zones.az.names)]
-
-  tags = {
-    Name = "rds-${count.index + 1}" 
-  }
-}
-resource "aws_db_subnet_group" "custom_db_subnet_group" {
-  name       = "my-custom-db-subnet-group"
-  description = "Custom DB Subnet Group"
-  subnet_ids = aws_subnet.rds_subnet[*].id
-}
 resource "aws_subnet" "prod_subnet" {
   count = length(local.prod_ec2s)
 
@@ -53,8 +38,11 @@ resource "aws_subnet" "prod_subnet" {
     Name = "prod-${count.index + 1}"
     
   }
+resource "aws_db_subnet_group" "custom_db_subnet_group" {
+  name       = "my-custom-db-subnet-group"
+  description = "Custom DB Subnet Group"
+  subnet_id = aws_subnet.prod_subnet[*].id
 }
-
 resource "aws_internet_gateway" "main_igw" {
   vpc_id = aws_vpc.main_vpc.id
 
