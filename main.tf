@@ -26,7 +26,7 @@ resource "aws_vpc" "main_vpc" {
 data "aws_availability_zones" "az" {
   state = "available"
 }
-esource "aws_subnet" "rds_subnet" {
+resource "aws_subnet" "rds_subnet" {
   count = length(local.rds)
 
   cidr_block = "10.0.${count.index}.0/24"
