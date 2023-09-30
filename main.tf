@@ -26,6 +26,22 @@ resource "aws_vpc" "main_vpc" {
 data "aws_availability_zones" "az" {
   state = "available"
 }
+resource "aws_subnet" "rds_subnet" {
+  count = length(local.rds)
+
+  cidr_block = "10.0.0.0/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
+  vpc_id     = aws_vpc.main_vpc.id
+  availability_zone = data.aws_availability_zones.az.names[count.index]
+
+  tags = {
+    Name = "rds-${count.index + 1}" 
+  }
+}
+resource "aws_db_subnet_group" "custom_db_subnet_group" {
+  name       = "my-custom-db-subnet-group"
+  description = "Custom DB Subnet Group"
+  subnet_ids = aws_subnet.rds_subnet[*].id
+}
 resource "aws_subnet" "prod_subnet" {
   count = length(local.prod_ec2s)
 
@@ -155,6 +171,8 @@ module "rds" {
   db_username          = local.rds.prod-db-postgres.db_username 
   db_password          = local.rds.prod-db-postgres.db_password 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  db_subnet_group_name = aws_db_subnet_group.custom_db_subnet_group.name
+
   skip_final_snapshot = true # Change based on your retention policy
 }
 
