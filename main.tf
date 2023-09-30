@@ -42,7 +42,7 @@ resource "aws_subnet" "prod_subnet" {
 resource "aws_db_subnet_group" "custom_db_subnet_group" {
   name       = "my-custom-db-subnet-group"
   description = "Custom DB Subnet Group"
-  subnet_id = aws_subnet.prod_subnet[*].id
+  subnet_ids = aws_subnet.prod_subnet[*].id
 }
 resource "aws_internet_gateway" "main_igw" {
   vpc_id = aws_vpc.main_vpc.id
