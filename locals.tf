@@ -7,7 +7,7 @@ locals {
 
   prod_env = try(local.environments["prod"], {} )
   prod_ec2s = try(local.prod_env["ec2"], {} )
-  v4_env_offset = ceil(log(length(local.environments) + 1, 5))
+  v4_env_offset = ceil(log(length(local.environments) + 2, 5))
 
   rds = try(local.prod_env["rds"], {} )
 
