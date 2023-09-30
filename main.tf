@@ -29,9 +29,9 @@ data "aws_availability_zones" "az" {
 resource "aws_subnet" "rds_subnet" {
   count = length(local.rds) 
 
-  cidr_block = "10.0.${count.index + length(local.prod_ec2s)}.0/24" #cidrsubnet(cidrsubnet(local.main_vpc.cidr, local.v4_env_offset,0), local.v4_env_offset+count.index,0) 
+  cidr_block = "10.0.1.0/24" #cidrsubnet(cidrsubnet(local.main_vpc.cidr, local.v4_env_offset,0), local.v4_env_offset+count.index,0) 
   vpc_id     = aws_vpc.main_vpc.id
-  availability_zone = data.aws_availability_zones.az.names[count.index]
+  availability_zone = "us-east-1a"
 
   tags = {
     Name = "rds-${count.index + 1}"
