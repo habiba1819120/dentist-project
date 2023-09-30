@@ -45,7 +45,7 @@ resource "aws_db_subnet_group" "custom_db_subnet_group" {
 resource "aws_subnet" "prod_subnet" {
   count = length(local.prod_ec2s)
 
-  cidr_block = "10.0.${count.index}.0/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
+  cidr_block = "10.0.0.${count.index}/24" #cidrsubnet(local.main_vpc.cidr, local.v4_env_offset+count.index,0) 
   vpc_id     = aws_vpc.main_vpc.id
   availability_zone = data.aws_availability_zones.az.names[count.index]
 
